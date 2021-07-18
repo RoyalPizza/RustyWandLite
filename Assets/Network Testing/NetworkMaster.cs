@@ -6,9 +6,8 @@ using UnityEngine;
 public class NetworkMaster : MonoBehaviour
 {
     [Command]
-    public void StartAsServer(string route = "127.0.0.1")
+    public void StartAsServer()
     {
-        NetworkManager.Singleton.GetComponent<UNetTransport>().ConnectAddress = route;
         NetworkManager.Singleton.StartServer();
         NetworkManager.Singleton.OnServerStarted += Singleton_OnServerStarted;
 
@@ -41,8 +40,6 @@ public class NetworkMaster : MonoBehaviour
     [Command]
     public void Shutdown()
     {
-        
-
         if (NetworkManager.Singleton.IsClient)
         {
             NetworkManager.Singleton.StopClient();
