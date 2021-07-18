@@ -8,9 +8,9 @@ public class NetworkMaster : MonoBehaviour
     [Command]
     public void StartAsServer()
     {
+        Debug.Log("Server Start Command Sent");
         NetworkManager.Singleton.OnServerStarted += Singleton_OnServerStarted;
         NetworkManager.Singleton.StartServer();
-        Debug.Log("Server Start Command Set");
     }
 
     [Command]
@@ -18,11 +18,11 @@ public class NetworkMaster : MonoBehaviour
     {
         try
         {
+            Debug.Log("Client Connect Command Sent");
             NetworkManager.Singleton.GetComponent<UNetTransport>().ConnectAddress = route;
             NetworkManager.Singleton.OnClientConnectedCallback += Singleton_OnClientConnectedCallback;
             NetworkManager.Singleton.OnClientDisconnectCallback += Singleton_OnClientDisconnectCallback;
             NetworkManager.Singleton.StartClient();
-            Debug.Log("Client Connect Command Set");
         }
         catch (System.Exception err)
         {
@@ -41,12 +41,14 @@ public class NetworkMaster : MonoBehaviour
     {
         if (NetworkManager.Singleton.IsClient)
         {
+            Debug.Log("Shutown Client Sent");
             NetworkManager.Singleton.StopClient();
             NetworkManager.Singleton.OnClientConnectedCallback -= Singleton_OnClientConnectedCallback;
             NetworkManager.Singleton.OnClientDisconnectCallback -= Singleton_OnClientDisconnectCallback;
         }
         else if (NetworkManager.Singleton.IsServer)
         {
+            Debug.Log("Shutown Server Sent");
             NetworkManager.Singleton.StopServer();
             NetworkManager.Singleton.OnServerStarted -= Singleton_OnServerStarted;
         }
