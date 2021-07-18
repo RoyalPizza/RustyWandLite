@@ -5,52 +5,27 @@ using UnityEngine;
 
 public class NetworkPlayer : NetworkBehaviour
 {
-    public NetworkVariableVector3 Position = new NetworkVariableVector3(new NetworkVariableSettings
-    {
-        WritePermission = NetworkVariablePermission.ServerOnly,
-        ReadPermission = NetworkVariablePermission.Everyone
-    });
+    public float speed = 5.0F;
+    public float rotateSpeed = 1.0F;
 
-    public override void NetworkStart()
-    {
-        Move();
-    }
+    CharacterController characterController;
 
-    public void Move()
+    private void Start()
     {
-        if (NetworkManager.Singleton.IsServer)
-        {
-            var randomPosition = GetRandomPositionOnPlane();
-            transform.position = randomPosition;
-            Position.Value = randomPosition;
-        }
-        else
-        {
-            SubmitPositionRequestServerRpc();
-        }
-    }
-
-    [ServerRpc]
-    void SubmitPositionRequestServerRpc(ServerRpcParams rpcParams = default)
-    {
-        Position.Value = GetRandomPositionOnPlane();
-    }
-
-    static Vector3 GetRandomPositionOnPlane()
-    {
-        return new Vector3(Random.Range(-3f, 3f), 1f, Random.Range(-3f, 3f));
+        characterController = GetComponent<CharacterController>();
     }
 
     void Update()
     {
-        transform.position = Position.Value;
-
-        if (IsOwner)
+        if (IsLocalPlayer)
         {
-            if (Input.GetKeyDown(KeyCode.Space))
-            {
-                Move();
-            }
+            // Rotate around y - axis
+            transform.Rotate(0, Input.GetAxis("Horizontal") * rotateSpeed, 0);
+
+            // Move forward / backward
+            Vector3 forward = transform.TransformDirection(Vector3.forward);
+            float curSpeed = speed * Input.GetAxis("Vertical");
+            characterController.SimpleMove(forward * curSpeed);
         }
     }
 }
