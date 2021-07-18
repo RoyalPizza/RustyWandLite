@@ -351,7 +351,7 @@ MonoBehaviour:
     - NetworkTestScene
     AllowRuntimeSceneChanges: 0
     NetworkPrefabs:
-    - Prefab: {fileID: 7454894154377875702, guid: de2c122c3fb008d4aa87bf128877accc, type: 3}
+    - Prefab: {fileID: 4958870269661056886, guid: f0bda2d34be2c4941986a2e8322718ed, type: 3}
       PlayerPrefab: 1
     PlayerPrefabHash:
       id: 0
@@ -466,7 +466,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 224130951485110974, guid: 9ed2a051c32b4fe47a5e4fb95c20b03f, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 0.000030517578
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 224166536479716514, guid: 9ed2a051c32b4fe47a5e4fb95c20b03f, type: 3}
       propertyPath: m_AnchorMax.y
@@ -823,7 +823,6 @@ GameObject:
   - component: {fileID: 2023927690}
   - component: {fileID: 2023927689}
   - component: {fileID: 2023927688}
-  - component: {fileID: 2023927687}
   m_Layer: 0
   m_Name: Camera
   m_TagString: Untagged
@@ -831,18 +830,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &2023927687
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2023927686}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 23c1ce4fb46143f46bc5cb5224c934f6, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!81 &2023927688
 AudioListener:
   m_ObjectHideFlags: 0
