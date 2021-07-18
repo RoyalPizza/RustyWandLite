@@ -10,8 +10,9 @@ public class NetworkMaster : MonoBehaviour
     {
         NetworkManager.Singleton.GetComponent<UNetTransport>().ConnectAddress = route;
         NetworkManager.Singleton.StartServer();
+        NetworkManager.Singleton.OnServerStarted += Singleton_OnServerStarted;
 
-        Debug.Log("Server Connected");
+        Debug.Log("Server Start Command Set");
     }
 
     [Command]
@@ -21,7 +22,9 @@ public class NetworkMaster : MonoBehaviour
         {
             NetworkManager.Singleton.GetComponent<UNetTransport>().ConnectAddress = route;
             NetworkManager.Singleton.StartClient();
-            Debug.Log("Client Connected");
+            NetworkManager.Singleton.OnClientConnectedCallback += Singleton_OnClientConnectedCallback;
+            NetworkManager.Singleton.OnClientDisconnectCallback += Singleton_OnClientDisconnectCallback;
+            Debug.Log("Client Connect Command Set");
         }
         catch (System.Exception err)
         {
@@ -36,9 +39,37 @@ public class NetworkMaster : MonoBehaviour
     }
 
     [Command]
-    public void DisconnectAsClient()
+    public void Shutdown()
     {
-        NetworkManager.Singleton.StopClient();
+        
+
+        if (NetworkManager.Singleton.IsClient)
+        {
+            NetworkManager.Singleton.StopClient();
+            NetworkManager.Singleton.OnClientConnectedCallback -= Singleton_OnClientConnectedCallback;
+            NetworkManager.Singleton.OnClientDisconnectCallback -= Singleton_OnClientDisconnectCallback;
+        }
+        else if (NetworkManager.Singleton.IsServer)
+        {
+            NetworkManager.Singleton.StopServer();
+            NetworkManager.Singleton.OnServerStarted -= Singleton_OnServerStarted;
+        }
+
         Application.Quit();
+    }
+
+    private void Singleton_OnServerStarted()
+    {
+        Debug.Log("Server Started");
+    }
+
+    private void Singleton_OnClientConnectedCallback(ulong obj)
+    {
+        Debug.Log($"Client Connected {obj}");
+    }
+
+    private void Singleton_OnClientDisconnectCallback(ulong obj)
+    {
+        Debug.Log($"Client Disconnected {obj}");
     }
 }
