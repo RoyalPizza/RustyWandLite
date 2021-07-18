@@ -5175,7 +5175,6 @@ MonoBehaviour:
     NetworkTransport: {fileID: 661956008}
     RegisteredScenes:
     - NetworkTestScene
-    - Demo
     AllowRuntimeSceneChanges: 0
     NetworkPrefabs:
     - Prefab: {fileID: 4958870269661056886, guid: f0bda2d34be2c4941986a2e8322718ed, type: 3}
@@ -6224,7 +6223,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 224130951485110974, guid: 9ed2a051c32b4fe47a5e4fb95c20b03f, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 0.000030517578
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 224166536479716514, guid: 9ed2a051c32b4fe47a5e4fb95c20b03f, type: 3}
       propertyPath: m_AnchorMax.y
