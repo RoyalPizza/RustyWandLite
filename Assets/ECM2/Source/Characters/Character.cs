@@ -1,6 +1,7 @@
 ﻿using ECM2.Common;
 using ECM2.Components;
 using ECM2.Helpers;
+using MLAPI;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -60,6 +61,8 @@ namespace ECM2.Characters
 
     public class Character : MonoBehaviour, ICharacterMovementCallbacks
     {
+        NetworkHelper networkHelper;
+
         #region EDITOR EXPOSED FIELDS
 
         [Header("Input")]
@@ -75,7 +78,7 @@ namespace ECM2.Characters
 
         [Tooltip("Character's current rotation mode.")]
         [SerializeField]
-        private RotationMode _rotationMode;        
+        private RotationMode _rotationMode;
 
         [Header("Walking")]
         [Tooltip("The maximum ground speed when walking.\n" +
@@ -110,7 +113,7 @@ namespace ECM2.Characters
         [Tooltip("The walk acceleration multiplier while sprinting.")]
         [SerializeField]
         private float _sprintAccelerationMultiplier;
-        
+
         [Header("Crouching")]
         [Tooltip("The maximum ground speed when walking and crouched.")]
         [SerializeField]
@@ -123,7 +126,7 @@ namespace ECM2.Characters
         [Tooltip("If true, allows to jump while crouched (uncrouch character).")]
         [SerializeField]
         private bool _crouchedJump;
-        
+
         [Header("Falling")]
         [Tooltip("The maximum vertical velocity a Character can reach when falling. Eg: Terminal velocity.")]
         [SerializeField]
@@ -143,7 +146,7 @@ namespace ECM2.Characters
                  "0 = no control, 1 = full control at max acceleration.")]
         [SerializeField]
         private float _airControl;
-        
+
         [Header("Jumping")]
         [Tooltip("The max number of jumps the Character can perform.")]
         [SerializeField]
@@ -169,7 +172,7 @@ namespace ECM2.Characters
         [Tooltip("The gravity applied to this Character.")]
         [SerializeField]
         private Vector3 _gravity;
-        
+
         [Header("Swimming")]
         [Tooltip("If True, this Character is capable to Swim or move through fluid volumes.")]
         [SerializeField]
@@ -190,20 +193,20 @@ namespace ECM2.Characters
         [Tooltip("Water buoyancy ratio. 1 = Neutral Buoyancy, 0 = No Buoyancy.")]
         [SerializeField]
         private float _buoyancy;
-        
+
         [Header("Flying")]
         [Tooltip("The maximum flying speed.")]
         [SerializeField]
         private float _maxFlySpeed;
-        
+
         [Tooltip("Deceleration when flying and not applying acceleration.")]
         [SerializeField]
         private float _brakingDecelerationFlying;
-        
+
         [Tooltip("Friction to apply to movement when flying.")]
         [SerializeField]
         private float _flyingFriction;
-        
+
         [Header("Physics")]
         [Tooltip("This Character's mass.")]
         [SerializeField]
@@ -249,7 +252,7 @@ namespace ECM2.Characters
         [Tooltip("Should animation determines the Character's movement ?")]
         [SerializeField]
         private bool _useRootMotion;
-        
+
         [Header("Camera")]
         [Tooltip("Reference to the Player's Camera.\n" +
                  "If assigned, the Character's movement will be relative to this camera, otherwise movement will be relative to world axis.")]
@@ -352,7 +355,7 @@ namespace ECM2.Characters
         /// <summary>
         /// Change in rotation per second (Deg / s).
         /// </summary>
-        
+
         public float rotationRate
         {
             get => _rotationRate;
@@ -682,7 +685,7 @@ namespace ECM2.Characters
         /// <summary>
         /// Deceleration when flying and not applying acceleration.
         /// </summary>
-        
+
         public float brakingDecelerationFlying
         {
             get => _brakingDecelerationFlying;
@@ -692,13 +695,13 @@ namespace ECM2.Characters
         /// <summary>
         /// Friction to apply to movement when flying.
         /// </summary>
-        
+
         public float flyingFriction
         {
             get => _flyingFriction;
             set => _flyingFriction = Mathf.Max(0.0f, value);
         }
-        
+
         /// <summary>
         /// This Character's mass (in Kg).
         /// </summary>
@@ -895,7 +898,7 @@ namespace ECM2.Characters
 
             return Vector2.zero;
         }
-        
+
         /// <summary>
         /// Jump input action handler.
         /// </summary>
@@ -971,13 +974,13 @@ namespace ECM2.Characters
         /// <summary>
         /// Triggered when the Character was not on walkable ground (last frame) and hits walkable ground.
         /// </summary>
-        
+
         public event LandedEventHandler Landed;
 
         /// <summary>
         /// Triggered when the Character will hit walkable ground.
         /// </summary>
-        
+
         public event WillLandEventHandler WillLand;
 
         /// <summary>
@@ -1063,7 +1066,7 @@ namespace ECM2.Characters
         /// <summary>
         /// Called when the Character was not on walkable ground (last frame) and hits walkable ground.
         /// </summary>
-        
+
         protected virtual void OnLanded()
         {
             // Trigger landed event
@@ -1183,76 +1186,76 @@ namespace ECM2.Characters
             switch (_movementMode)
             {
                 case MovementMode.None:
-                {
-                    // Entering None mode...
+                    {
+                        // Entering None mode...
 
-                    // Disable Character's movement
+                        // Disable Character's movement
 
-                    ClearAccumulatedForces();
+                        ClearAccumulatedForces();
 
-                    characterMovement.Pause(true);
+                        characterMovement.Pause(true);
 
-                    break;
-                }
+                        break;
+                    }
 
                 case MovementMode.Walking:
-                {
-                    // Entering Walking mode...
+                    {
+                        // Entering Walking mode...
 
-                    // Reset jump count and clear apex notification flag
+                        // Reset jump count and clear apex notification flag
 
-                    _jumpCount = 0;
-                    notifyJumpApex = false;
+                        _jumpCount = 0;
+                        notifyJumpApex = false;
 
-                    // If was flying or swimming, enable ground constraint
+                        // If was flying or swimming, enable ground constraint
 
-                    if (prevMovementMode == MovementMode.Flying || prevMovementMode == MovementMode.Swimming)
-                        characterMovement.ConstrainToGround(true);
+                        if (prevMovementMode == MovementMode.Flying || prevMovementMode == MovementMode.Swimming)
+                            characterMovement.ConstrainToGround(true);
 
-                    break;
-                }
+                        break;
+                    }
 
                 case MovementMode.Falling:
-                {
-                    // Entering Falling mode...
+                    {
+                        // Entering Falling mode...
 
-                    // If was flying or swimming, enable ground constraint as it could lands on walkable ground
+                        // If was flying or swimming, enable ground constraint as it could lands on walkable ground
 
-                    if (prevMovementMode == MovementMode.Flying || prevMovementMode == MovementMode.Swimming)
-                        characterMovement.ConstrainToGround(true);
+                        if (prevMovementMode == MovementMode.Flying || prevMovementMode == MovementMode.Swimming)
+                            characterMovement.ConstrainToGround(true);
 
-                    break;
-                }
+                        break;
+                    }
 
                 case MovementMode.Swimming:
-                {
-                    // Entering Swimming mode...
+                    {
+                        // Entering Swimming mode...
 
-                    // Stop the Character from holding jump.
+                        // Stop the Character from holding jump.
 
-                    StopJumping();
+                        StopJumping();
 
-                    // Disable ground constraint
+                        // Disable ground constraint
 
-                    characterMovement.ConstrainToGround(false);
+                        characterMovement.ConstrainToGround(false);
 
-                    break;
-                }
+                        break;
+                    }
 
                 case MovementMode.Flying:
-                {
-                    // Entering Flying mode...
+                    {
+                        // Entering Flying mode...
 
-                    // Stop the Character from holding jump.
+                        // Stop the Character from holding jump.
 
-                    StopJumping();
+                        StopJumping();
 
-                    // Disable ground constraint
+                        // Disable ground constraint
 
-                    characterMovement.ConstrainToGround(false);
+                        characterMovement.ConstrainToGround(false);
 
-                    break;
-                }
+                        break;
+                    }
             }
 
             // Left Falling mode, reset falling timer
@@ -1269,7 +1272,7 @@ namespace ECM2.Characters
 
             MovementModeChanged?.Invoke(prevMovementMode, prevCustomMode);
         }
-        
+
         #endregion
 
         #region CALLBACKS
@@ -1283,7 +1286,7 @@ namespace ECM2.Characters
         {
             OnMovementHit(ref movementHitResult);
         }
-        
+
         void ICharacterMovementCallbacks.OnMove()
         {
             OnMove();
@@ -1398,7 +1401,7 @@ namespace ECM2.Characters
         /// Sets the Character's position.
         /// Unlike SetPosition, this cause an instant change in position without any interpolation.
         /// </summary>        
-        
+
         public virtual void TeleportPosition(Vector3 position)
         {
             transform.position = position;
@@ -1427,7 +1430,7 @@ namespace ECM2.Characters
         /// Sets the Character's rotation.
         /// Unlike SetRotation, this cause an instant change in rotation without any interpolation.
         /// </summary>
-        
+
         public virtual void TeleportRotation(Quaternion rotation)
         {
             transform.rotation = rotation;
@@ -1674,18 +1677,18 @@ namespace ECM2.Characters
         /// <summary>
         /// The maximum speed for current movement mode (accounting crouching / sprinting state).
         /// </summary>
-        
+
         public virtual float GetMaxSpeed()
         {
             switch (_movementMode)
             {
                 case MovementMode.Walking:
-                {
-                    if (IsCrouching())
-                        return maxWalkSpeedCrouched;
+                    {
+                        if (IsCrouching())
+                            return maxWalkSpeedCrouched;
 
-                    return IsSprinting() ? maxWalkSpeed * sprintSpeedMultiplier : maxWalkSpeed;
-                }
+                        return IsSprinting() ? maxWalkSpeed * sprintSpeedMultiplier : maxWalkSpeed;
+                    }
 
                 case MovementMode.Falling:
                     return maxWalkSpeed;
@@ -1721,7 +1724,7 @@ namespace ECM2.Characters
         /// <summary>
         /// The acceleration for current movement mode.
         /// </summary>
-        
+
         public virtual float GetMaxAcceleration()
         {
             if (IsFalling())
@@ -1733,7 +1736,7 @@ namespace ECM2.Characters
         /// <summary>
         /// The braking deceleration for current movement mode.
         /// </summary>
-        
+
         public virtual float GetBrakingDeceleration()
         {
             switch (_movementMode)
@@ -1742,12 +1745,12 @@ namespace ECM2.Characters
                     return brakingDecelerationWalking;
 
                 case MovementMode.Falling:
-                {
-                    // Falling,
-                    // BUT ON non-walkable ground, bypass braking deceleration to force slide off
+                    {
+                        // Falling,
+                        // BUT ON non-walkable ground, bypass braking deceleration to force slide off
 
-                    return characterMovement.isOnGround ? 0.0f : brakingDecelerationFalling;
-                }
+                        return characterMovement.isOnGround ? 0.0f : brakingDecelerationFalling;
+                    }
 
                 case MovementMode.Swimming:
                     return brakingDecelerationSwimming;
@@ -1763,12 +1766,12 @@ namespace ECM2.Characters
         /// <summary>
         /// The current gravity vector (in world space).
         /// </summary>
-        
+
         public virtual Vector3 GetGravityVector()
         {
             return gravity;
         }
-        
+
         /// <summary>
         /// Computes the analog input modifier (0.0f to 1.0f) based on current input vector and desired velocity.
         /// </summary>
@@ -1797,7 +1800,7 @@ namespace ECM2.Characters
 
             if (isZeroFriction && isZeroBraking)
                 return velocity;
-            
+
             // Decelerate to brake to a stop
 
             Vector3 oldVel = velocity;
@@ -1923,7 +1926,7 @@ namespace ECM2.Characters
                 velocity = velocity.tangentTo(groundNormal, characterUp);
 
                 // Calculate new velocity
-            
+
                 characterMovement.velocity = CalcVelocity(velocity, desiredLateralVelocity, groundFriction);
             }
         }
@@ -1951,7 +1954,7 @@ namespace ECM2.Characters
             // Apply speed limit (velocity component along gravity direction)
 
             Vector3 gravityDirection = GetGravityVector().normalized;
-                
+
             if (Vector3.Dot(characterMovement.velocity, gravityDirection) > actualTerminalVelocity)
             {
                 characterMovement.velocity = characterMovement.velocity.projectedOnPlane(gravityDirection) +
@@ -1980,7 +1983,7 @@ namespace ECM2.Characters
 
                 Vector3 groundNormal =
                     characterUp.perpendicularTo(characterMovement.groundHit.normal).perpendicularTo(characterUp);
-                
+
                 if (Vector3.Dot(desiredLateralVelocity, groundNormal) < 0.0f)
                     desiredLateralVelocity = desiredLateralVelocity.projectedOnPlane(groundNormal);
 
@@ -2032,7 +2035,7 @@ namespace ECM2.Characters
         /// <summary>
         /// Is the character in a water physics volume ?
         /// </summary>
-        
+
         public virtual bool IsInWater()
         {
             return characterMovement.physicsVolume && characterMovement.physicsVolume.waterVolume;
@@ -2042,7 +2045,7 @@ namespace ECM2.Characters
         /// Attempts to enter Swimming mode.
         /// Called when Character enters a water physics volume.
         /// </summary>
-        
+
         public virtual void Swim()
         {
             // Is the Character able to swim ?
@@ -2064,7 +2067,7 @@ namespace ECM2.Characters
         /// Exits swimming mode.
         /// Called when Character leaves a water physics volume.
         /// </summary>
-        
+
         public virtual void StopSwimming()
         {
             // If Swimming, change to Falling mode
@@ -2077,7 +2080,7 @@ namespace ECM2.Characters
         /// How deep in water the character is immersed.
         /// Returns a float in range 0.0 = not in water, 1.0 = fully immersed.
         /// </summary>
-        
+
         public virtual float ImmersionDepth()
         {
             if (!IsInWater())
@@ -2101,7 +2104,7 @@ namespace ECM2.Characters
         /// Determines the Character's movement when Swimming through a fluid volume, under the effects of gravity and buoyancy.
         /// Ground-Unconstrained movement with full desiredVelocity (lateral AND vertical) applies gravity but scaled by (1.0f - buoyancy).
         /// </summary>
-        
+
         protected virtual void Swimming(Vector3 desiredVelocity)
         {
             // Compute actual buoyancy factoring current immersion depth
@@ -2245,7 +2248,7 @@ namespace ECM2.Characters
         /// <summary>
         /// Determines if the Character is able to perform the requested jump.
         /// </summary>
-        
+
         public virtual bool CanJump()
         {
             // Can jump while crouching ?
@@ -2330,7 +2333,7 @@ namespace ECM2.Characters
                 }
 
                 // Can perform the requested jump ?
-                
+
                 if (!CanJump())
                     return;
 
@@ -2417,7 +2420,7 @@ namespace ECM2.Characters
         /// Determines if the Character is able to crouch in its current movement mode.
         /// Defaults to Walking mode only.
         /// </summary>
-        
+
         public virtual bool CanCrouch()
         {
             return IsWalking();
@@ -2506,7 +2509,7 @@ namespace ECM2.Characters
             Vector3 desiredVelocity = !useRootMotion || !rootMotionController
                 ? movementDirection * GetMaxSpeed()
                 : rootMotionController.animRootMotionVelocity;
-            
+
             // Return desired velocity (constrained to constraint plane if any)
 
             return characterMovement.ConstrainDirectionToPlane(desiredVelocity);
@@ -2555,37 +2558,37 @@ namespace ECM2.Characters
             switch (_movementMode)
             {
                 case MovementMode.Walking:
-                {
-                    Walking(desiredVelocity);
-                    break;
-                }
+                    {
+                        Walking(desiredVelocity);
+                        break;
+                    }
 
                 case MovementMode.Falling:
-                {
-                    Falling(desiredVelocity);
+                    {
+                        Falling(desiredVelocity);
 
-                    _fallingTime = fallingTime + Time.deltaTime;
+                        _fallingTime = fallingTime + Time.deltaTime;
 
-                    break;
-                }
+                        break;
+                    }
 
                 case MovementMode.Swimming:
-                {
-                    Swimming(desiredVelocity);
-                    break;
-                }
+                    {
+                        Swimming(desiredVelocity);
+                        break;
+                    }
 
                 case MovementMode.Flying:
-                {
-                    Flying(desiredVelocity);
-                    break;
-                }
+                    {
+                        Flying(desiredVelocity);
+                        break;
+                    }
 
                 case MovementMode.Custom:
-                {
-                    OnCustomMovementMode(desiredVelocity);
-                    break;
-                }
+                    {
+                        OnCustomMovementMode(desiredVelocity);
+                        break;
+                    }
             }
 
             // Jumping state
@@ -2652,28 +2655,28 @@ namespace ECM2.Characters
             switch (forceMode)
             {
                 case ForceMode.Force:
-                {
-                    _pendingForces += force / mass * Time.deltaTime;
-                    break;
-                }
+                    {
+                        _pendingForces += force / mass * Time.deltaTime;
+                        break;
+                    }
 
                 case ForceMode.Acceleration:
-                {
-                    _pendingForces += force * Time.deltaTime;
-                    break;
-                }
+                    {
+                        _pendingForces += force * Time.deltaTime;
+                        break;
+                    }
 
                 case ForceMode.Impulse:
-                {
-                    _pendingForces += force / mass;
-                    break;
-                }
+                    {
+                        _pendingForces += force / mass;
+                        break;
+                    }
 
                 case ForceMode.VelocityChange:
-                {
-                    _pendingForces += force;
-                    break;
-                }
+                    {
+                        _pendingForces += force;
+                        break;
+                    }
             }
         }
 
@@ -2728,7 +2731,7 @@ namespace ECM2.Characters
             else
             {
                 // On 'Air' or Non-walkable 'ground'
-                
+
                 if (IsFalling() && movementHit.hitWalkableGround)
                 {
                     // Hit walkable, cancel vertical velocity and reorient remaining along ground surface
@@ -2831,7 +2834,7 @@ namespace ECM2.Characters
 
             float a1 = Vector3.Dot(v1, n);
             float a2 = Vector3.Dot(v2, n);
-            
+
             float m1 = mass;
             float m2 = otherCharacter ? otherCharacter.mass : rigidbodyHit.rigidbody.mass;
 
@@ -2973,7 +2976,7 @@ namespace ECM2.Characters
         /// <summary>
         /// Sets the yaw value. This will reset the current pitch and roll values.
         /// </summary>
-        
+
         public virtual void SetYaw(float value)
         {
             transform.rotation = Quaternion.Euler(0.0f, value, 0.0f);
@@ -3027,7 +3030,7 @@ namespace ECM2.Characters
 
             Quaternion targetRotation = Quaternion.LookRotation(worldDirection, characterUp);
 
-            characterMovement.rotation = 
+            characterMovement.rotation =
                 Quaternion.Slerp(characterMovement.rotation, targetRotation, rotationRate * Mathf.Deg2Rad * Time.deltaTime);
         }
 
@@ -3053,7 +3056,7 @@ namespace ECM2.Characters
         /// <summary>
         /// Makes the collision detection system ignore all collisions between Character's capsule collider and otherCollider.
         /// </summary>
-        
+
         public virtual void IgnoreCollision(Collider otherCollider, bool ignore = true)
         {
             characterMovement.IgnoreCollision(otherCollider, ignore);
@@ -3072,7 +3075,7 @@ namespace ECM2.Characters
         /// <summary>
         /// Setup player InputActions (if any).
         /// </summary>
-        
+
         protected virtual void SetupPlayerInput()
         {
             // Attempts to cache Character InputActions (if any)
@@ -3123,13 +3126,16 @@ namespace ECM2.Characters
         {
             // Should handle input ?
 
+            if (!networkHelper.GetLocalPlayer())
+                return;
+
             if (actions == null)
                 return;
 
             // Poll movement InputAction
 
             var movementInput = GetMovementInput();
-            
+
             if (cameraTransform == null)
             {
                 // If Camera is not assigned, add movement input relative to world axis
@@ -3149,7 +3155,7 @@ namespace ECM2.Characters
 
                 movementDirection += Vector3.right * movementInput.x;
                 movementDirection += Vector3.forward * movementInput.y;
-                
+
                 movementDirection = movementDirection.relativeTo(cameraTransform);
 
                 SetMovementDirection(movementDirection);
@@ -3176,7 +3182,7 @@ namespace ECM2.Characters
             if (rotationMode == RotationMode.OrientToMovement)
             {
                 // Orient towards input move direction vector (in Character's plane)
-                
+
                 Vector3 movementDirection = GetMovementDirection();
 
                 RotateTowards(movementDirection);
@@ -3187,7 +3193,7 @@ namespace ECM2.Characters
 
                 if (cameraTransform == null)
                     return;
-                
+
                 Vector3 viewDirection = cameraTransform.forward;
 
                 RotateTowards(viewDirection);
@@ -3200,7 +3206,7 @@ namespace ECM2.Characters
                     ApplyRootMotionRotation();
             }
         }
-        
+
         /// <summary>
         /// Helper method used to feed the Character's animator.
         /// </summary>
@@ -3359,7 +3365,7 @@ namespace ECM2.Characters
         {
             // Enable input actions
 
-            movementInputAction?.Enable();            
+            movementInputAction?.Enable();
             jumpInputAction?.Enable();
             crouchInputAction?.Enable();
             sprintInputAction?.Enable();
@@ -3374,7 +3380,7 @@ namespace ECM2.Characters
         {
             // Disable input actions
 
-            movementInputAction?.Disable();            
+            movementInputAction?.Disable();
             jumpInputAction?.Disable();
             crouchInputAction?.Disable();
             sprintInputAction?.Disable();
@@ -3426,7 +3432,7 @@ namespace ECM2.Characters
         #endregion
 
         #region MONOBEHAVIOUR
-        
+
         private void Reset()
         {
             OnReset();
@@ -3436,7 +3442,7 @@ namespace ECM2.Characters
         {
             OnOnValidate();
         }
-        
+
         private void Awake()
         {
             OnAwake();
@@ -3446,7 +3452,7 @@ namespace ECM2.Characters
         {
             OnOnDestroy();
         }
-        
+
         private void OnEnable()
         {
             OnOnEnable();
@@ -3459,6 +3465,8 @@ namespace ECM2.Characters
 
         private void Start()
         {
+            networkHelper = GetComponent<NetworkHelper>();
+
             OnStart();
         }
 
