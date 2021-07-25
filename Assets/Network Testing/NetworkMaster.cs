@@ -61,6 +61,12 @@ public class NetworkMaster : MonoBehaviour
     }
 
     [Command]
+    public void StartAsClientToRoyalPizza()
+    {
+        StartAsClient("104.136.30.142");
+    }
+
+    [Command]
     public void StartAsServer()
     {
         Debug.Log("Server Start Command Sent");
