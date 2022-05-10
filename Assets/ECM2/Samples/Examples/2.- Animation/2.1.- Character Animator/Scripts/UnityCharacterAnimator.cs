@@ -20,9 +20,14 @@ namespace ECM2.Examples.Animation.UnityCharacterAnimatorExample
 
         private bool _isCharacterNull;
 
+        public NetworkHelper networkHelper;
+
         private void Update()
         {
             if (_isCharacterNull)
+                return;
+
+            if (networkHelper != null && !networkHelper.GetLocalPlayer())
                 return;
 
             // Get Character animator

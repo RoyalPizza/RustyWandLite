@@ -3126,7 +3126,7 @@ namespace ECM2.Characters
         {
             // Should handle input ?
 
-            if (!networkHelper.GetLocalPlayer())
+            if (networkHelper != null && !networkHelper.GetLocalPlayer())
                 return;
 
             if (actions == null)
